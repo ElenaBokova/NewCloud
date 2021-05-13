@@ -1,0 +1,20 @@
+---
+# defaults file for roles/jekyll-build
+
+jekyll_build_rvm1_install_path: ~/.rvm
+
+jekyll_build_owner: root
+jekyll_build_group: root
+jekyll_build_name: localhost
+jekyll_build_sourcedir: "/home/{{ jekyll_build_owner }}/{{ jekyll_build_name }}"
+jekyll_build_root: /var/www/{{ jekyll_build_name }}/html
+# Reguired: URL to git repository
+#jekyll_build_git_repo:
+
+# Default branch
+jekyll_build_git_branch: master
+jekyll_build_baseurl: ""
+jekyll_build_config: []
+
+jekyll_build_force_git: False
+jekyll_build_force_rebuild: False

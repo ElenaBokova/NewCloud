@@ -1,0 +1,76 @@
+---
+# tasks file for roles/jekyll-build
+
+- name: jekyll | install required packages
+  become: yes
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - make
+    - gcc
+    - libxml2-devel
+    - libxslt-devel
+    - which
+
+- name: install ruby
+  become: yes
+  include_role:
+    name: rvm_io.ruby
+  vars:
+    rvm1_install_path: "{{ jekyll_build_rvm1_install_path }}"
+    rvm1_user: root
+
+- name: jekyll | create jekyll install directory
+  become: yes
+  file:
+    path: /opt/jekyll-build/
+    state: directory
+
+- name: jekyll | copy gemfiles
+  become: yes
+  copy:
+    dest: /opt/jekyll-build/{{ item }}
+    force: yes
+    src: "{{ item }}"
+  with_items:
+  - Gemfile
+  - Gemfile.lock
+
+- name: jekyll | install jekyll
+  become: yes
+  bundler:
+    chdir: /opt/jekyll-build
+    executable: "{{ jekyll_build_rvm1_install_path }}/wrappers/default/bundler"
+    state: present
+
+- name: jekyll | create site root directory
+  become: yes
+  file:
+    state: directory
+    dest: "{{ jekyll_build_root }}"
+    owner: "{{ jekyll_build_owner }}"
+    group: "{{ jekyll_build_group }}"
+    mode: 0755
+    serole: _default
+    setype: _default
+    seuser: _default
+
+- name: jekyll | clone site source code repository
+  become: yes
+  become_user: "{{ jekyll_build_owner }}"
+  git:
+    repo: "{{ jekyll_build_git_repo }}"
+    version: "{{ jekyll_build_git_branch }}"
+    dest: "{{ jekyll_build_sourcedir }}"
+    force: "{{ jekyll_build_force_git }}"
+  notify:
+   - update bundle
+   - jekyll build
+
+-  debug:
+     msg: "Force jekyll rebuild: {{ jekyll_build_force_rebuild }}"
+   notify:
+   - update bundle
+   - jekyll build
+   changed_when: jekyll_build_force_rebuild

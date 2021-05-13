@@ -1,0 +1,25 @@
+---
+# handlers for jekyll-build
+
+- name: update bundle
+  become: yes
+  become_user: "{{ jekyll_build_owner }}"
+  environment:
+    NOKOGIRI_USE_SYSTEM_LIBRARIES: 1
+  command: "{{ jekyll_build_rvm1_install_path }}/wrappers/default/bundle install"
+  args:
+    chdir: "{{jekyll_build_sourcedir}}"
+    removes: "{{jekyll_build_sourcedir}}/Gemfile"
+
+- name: jekyll build
+  become: yes
+  become_user: "{{ jekyll_build_owner }}"
+  command: >
+      "{{ jekyll_build_rvm1_install_path }}/wrappers/default/bundle" exec jekyll build
+      --destination {{ jekyll_build_root }}
+      {{ (jekyll_build_baseurl | length > 0) |
+         ternary('--baseurl ' + jekyll_build_baseurl, '') }}
+      {{ (jekyll_build_config | length > 0) |
+         ternary('--config ' + jekyll_build_config | join(","), '') }}
+  args:
+    chdir: "{{ jekyll_build_sourcedir }}"
